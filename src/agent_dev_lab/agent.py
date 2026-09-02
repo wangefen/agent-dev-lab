@@ -1,6 +1,6 @@
 from agent_dev_lab.config import DEEPSEEK_MODEL
 from agent_dev_lab.llm import (
-    JOB_SEARCH_TOOL,
+    AGENT_TOOLS,
     create_client,
 )
 from agent_dev_lab.tool_executor import execute_tool_call
@@ -30,7 +30,7 @@ def run_agent(prompt: str) -> str:
         response = client.chat.completions.create(
             model=DEEPSEEK_MODEL,
             messages=messages,
-            tools=[JOB_SEARCH_TOOL],
+            tools=AGENT_TOOLS,
             tool_choice="auto"
         )
         message = response.choices[0].message

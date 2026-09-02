@@ -37,6 +37,36 @@ JOB_SEARCH_TOOL = {
     },
 }
 
+COMPANY_INFO_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "get_company_info",
+        "description": (
+            "Get basic information about "
+            "a company."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "company": {
+                    "type": "string",
+                    "description": (
+                        "The company name."
+                    ),
+                },
+            },
+            "required": [
+                "company",
+            ],
+        },
+    },
+}
+
+AGENT_TOOLS = [
+    JOB_SEARCH_TOOL,
+    COMPANY_INFO_TOOL,
+]
+
 def create_client() -> OpenAI:
     if not DEEPSEEK_API_KEY:
         raise RuntimeError(

@@ -2,11 +2,15 @@ import json
 from typing import Any
 
 
-from agent_dev_lab.tools import search_jobs
+from agent_dev_lab.tools import (
+    get_company_info,
+    search_jobs,
+)
 
 #这里面字典的值是函数，不是字符串
 TOOL_REGISTRY = {
     "search_jobs": search_jobs,
+    "get_company_info": get_company_info,
 }
 
 def execute_tool_call(tool_call: Any) -> str:
