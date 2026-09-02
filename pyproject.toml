@@ -2,7 +2,7 @@
 name = "agent-dev-lab"
 version = "0.1.0"
 description = "A hands-on AI Agent engineering project."
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 
 dependencies = [
     "openai",

@@ -1,4 +1,3 @@
-from http.client import responses
 
 from openai import OpenAI
 
@@ -20,7 +19,7 @@ def create_client() -> OpenAI:
         base_url=DEEPSEEK_BASE_URL,
     )
 
-def ask_llm(promt: str) -> str:
+def ask_llm(prompt: str) -> str:
     client = create_client()
 
     #向一个兼容 OpenAI Chat Completions 格式的大模型服务器发送一次“聊天生成请求”，
@@ -30,11 +29,11 @@ def ask_llm(promt: str) -> str:
         messages = [
             {
                 "role": "system",
-                "comtent":"You are a helpful AI assistant.",
+                "content":"You are a helpful AI assistant.",
             },
             {
             "role":"user",
-                "content":promt,
+                "content":prompt,
             },
         ],
         #extra_body是 OpenAI Python SDK 提供的一个“额外请求体参数入口”
