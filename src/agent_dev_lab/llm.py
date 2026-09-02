@@ -9,6 +9,33 @@ from agent_dev_lab.config import (
 )
 from agent_dev_lab.schemas import TaskIntent
 
+JOB_SEARCH_TOOL = {
+    "type":"function",
+    "function": {
+        "name":"search_jobs",
+        "description": (
+            "Search for job openings by city "
+            "and keyword."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "description": "The target city.",
+                },
+                "keyword": {
+                    "type": "string",
+                    "description": "The job keyword.",
+                },
+            },
+            "required": [
+                "city",
+                "keyword",
+            ],
+        },
+    },
+}
 
 def create_client() -> OpenAI:
     if not DEEPSEEK_API_KEY:
@@ -98,3 +125,35 @@ def analyze_intent(prompt: str) -> TaskIntent:
 
     #model_validate：Pydantic 再检查是否每个字段都对应上了
     return TaskIntent.model_validate(data)
+
+def ask_with_tools(prompt: str):
+    client = create_client()
+
+    response = client.chat.completions.create(
+        model = DEEPSEEK_MODEL,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a career assistant. "
+                    "Use tools when external job "
+                    "information is needed."
+                ),
+            },
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
+        tools=[
+            JOB_SEARCH_TOOL,
+        ],
+        tool_choice="auto",
+        extra_body={
+            "thinking": {
+                "type": "disabled",
+            }
+        },
+    )
+
+    return response.choices[0].message

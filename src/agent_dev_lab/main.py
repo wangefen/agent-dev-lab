@@ -1,13 +1,15 @@
-from agent_dev_lab.llm import ask_llm, analyze_intent
+from agent_dev_lab.llm import ask_with_tools
 
 
 def main() -> None:
-    result = analyze_intent("帮我找一下上海目前有哪些适合我的央国企 angent 实习岗位")
+    message = ask_with_tools(
+        "帮我找上海目前的 agent 实习岗位。"
+    )
 
-    print(result)
-    print(result.intent)
-    print(result.needs_tool)
-    print(result.reason)
+    print(message)
+    print("content:", message.content)
+    print("tool_calls:", message.tool_calls)
+
 
 
 if __name__ == "__main__":
