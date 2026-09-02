@@ -155,5 +155,5 @@ def ask_with_tools(prompt: str):
             }
         },
     )
-
+    #message包含：message role, content, tool_calls, 其他一些字段
     return response.choices[0].message
