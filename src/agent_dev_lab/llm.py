@@ -1,3 +1,4 @@
+import json
 
 from openai import OpenAI
 
@@ -6,6 +7,7 @@ from agent_dev_lab.config import (
     DEEPSEEK_BASE_URL,
     DEEPSEEK_MODEL,
 )
+from agent_dev_lab.schemas import TaskIntent
 
 
 def create_client() -> OpenAI:
@@ -32,7 +34,7 @@ def ask_llm(prompt: str) -> str:
                 "content":"You are a helpful AI assistant.",
             },
             {
-            "role":"user",
+                "role":"user",
                 "content":prompt,
             },
         ],
@@ -53,3 +55,46 @@ def ask_llm(prompt: str) -> str:
     )
 
     return content
+
+def analyze_intent(prompt: str) -> TaskIntent:
+    client = create_client()
+
+    response = client.chat.completions.create(
+        model=DEEPSEEK_MODEL,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Analyze the user's request. "
+                    "Return JSON containing exactly these fields: "
+                    "intent, needs_tool, reason."
+                ),
+            },
+            {
+                "role":"user",
+                "content":prompt,
+            },
+        ],
+        #如果不写则默认普通文本输出模式
+        response_format={
+            "type":"json_object",
+        },
+        extra_body={
+            "thinking": {
+                "type": "disabled",
+            }
+        },
+    )
+
+    #这里得到的content其实是JSON 格式的字符串
+    content = response.choices[0].message.content
+
+    if content is None:
+        raise RuntimeError(
+            "The model returned an empty response."
+        )
+    #将data转化为dict格式
+    data = json.loads(content)
+
+    #model_validate：Pydantic 再检查是否每个字段都对应上了
+    return TaskIntent.model_validate(data)
