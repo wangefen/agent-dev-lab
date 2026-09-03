@@ -18,3 +18,12 @@ DEEPSEEK_MODEL = os.getenv(
     "DEEPSEEK_MODEL",
     "deepseek_v4-flash"
 )
+
+EMBEDDING_BASE_URL = os.getenv(
+    "EMBEDDING_BASE_URL"
+)
+
+EMBEDDING_MODEL = os.getenv(
+    "EMBEDDING_MODEL",
+    "ecnu-embedding-small",
+)

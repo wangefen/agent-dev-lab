@@ -11,4 +11,9 @@ dependencies = [
     "langchain",
     "langgraph",
     "langchain-openai",
+    "langchain-tavily",
+    "langchain-chroma",
+    "langchain-text-splitters",
+    "langchain-community",
+    "pypdf",
 ]

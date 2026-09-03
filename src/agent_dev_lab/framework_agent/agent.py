@@ -6,10 +6,16 @@ from agent_dev_lab.framework_agent.tools import AGENT_TOOLS
 SYSTEM_PROMPT = """
 You are a career research assistant.
 
-Use tools when job or company information
-is required.
+You help users research jobs, companies,
+and career opportunities.
 
-Never invent tool results.
+Use the web search tool whenever
+up-to-date or external information is required.
+
+Never invent search results.
+
+When using search results, base your answer
+on the retrieved information.
 """
 
 
@@ -25,7 +31,7 @@ def run_career_agent(prompt: str) -> str:
 
     result = agent.invoke(
         {
-            "messsages": [
+            "messages": [
                 {
                     "role":"user",
                     "content":prompt,
