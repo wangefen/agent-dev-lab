@@ -8,4 +8,7 @@ dependencies = [
     "openai",
     "python-dotenv",
     "pydantic",
+    "langchain",
+    "langgraph",
+    "langchain-openai",
 ]

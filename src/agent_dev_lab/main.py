@@ -1,9 +1,9 @@
-from agent_dev_lab.agent import run_agent
+from agent_dev_lab.framework_agent.agent import run_career_agent
 
 
 
 def main() -> None:
-    response = run_agent("帮我了解一下字节跳动这家公司。")
+    response = run_career_agent("帮我找上海agent实习岗位。")
 
     print(response)
 

@@ -1,9 +1,9 @@
 from agent_dev_lab.config import DEEPSEEK_MODEL
-from agent_dev_lab.llm import (
+from agent_dev_lab.native_agent.llm import (
     AGENT_TOOLS,
     create_client,
 )
-from agent_dev_lab.tool_executor import execute_tool_call
+from agent_dev_lab.native_agent.tool_executor import execute_tool_call
 
 MAX_STEPS = 5
 

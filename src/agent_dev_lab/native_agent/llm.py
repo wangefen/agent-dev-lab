@@ -7,7 +7,7 @@ from agent_dev_lab.config import (
     DEEPSEEK_BASE_URL,
     DEEPSEEK_MODEL,
 )
-from agent_dev_lab.schemas import TaskIntent
+from agent_dev_lab.native_agent.schemas import TaskIntent
 
 JOB_SEARCH_TOOL = {
     "type":"function",

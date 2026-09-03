@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 
-from agent_dev_lab.tools import (
+from agent_dev_lab.native_agent.tools import (
     get_company_info,
     search_jobs,
 )
