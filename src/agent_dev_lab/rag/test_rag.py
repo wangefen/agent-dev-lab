@@ -15,7 +15,7 @@ RESUME_PATH = (
     PROJECT_ROOT
     / "data"
     / "documents"
-    / "resume.pdf"
+    / "resume2.pdf"
 )
 
 def main() -> None:

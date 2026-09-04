@@ -4,13 +4,13 @@ from agent_dev_lab.framework_agent.resume_tool import (
     search_resume,
 )
 
-web_serach = TavilySearch(
+web_search = TavilySearch(
     max_results=5,
     topic="general",
 )
 
 
 AGENT_TOOLS = [
-    web_serach,
+    web_search,
     search_resume,
 ]
