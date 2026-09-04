@@ -19,12 +19,24 @@ def _configure_utf8_stdio() -> None:
 def main() -> None:
     _configure_utf8_stdio()
 
-    response = run_career_agent(
-        "帮我搜索适配翁嘉黛的伤害岗位，"
-        "结合简历分析我的匹配情况。"
+    thread_id = "career-test-001"
+
+    response1 = run_career_agent(
+        "记住，我找工作优先上海，"
+        "而且优先考虑银行科技岗和央国企。",
+        thread_id=thread_id,
     )
 
-    print(response)
+    print("===== 第一轮 =====")
+    print(response1)
+
+    response2 = run_career_agent(
+        "我刚才说自己优先考虑什么城市和什么类型的单位？",
+        thread_id=thread_id,
+    )
+
+    print("\n===== 第二轮 =====")
+    print(response2)
 
 
 if __name__ == "__main__":
