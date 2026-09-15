@@ -221,3 +221,6 @@ __marimo__/
 data/chroma/
 data/documents/*
 !data/documents/.gitkeep
+
+
+**/test_*.py

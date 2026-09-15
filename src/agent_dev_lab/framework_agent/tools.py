@@ -1,16 +1,15 @@
-from langchain_tavily import TavilySearch
-
 from agent_dev_lab.framework_agent.resume_tool import (
     search_resume,
 )
-
-web_search = TavilySearch(
-    max_results=5,
-    topic="general",
+from agent_dev_lab.mcp_clients.career_client import (
+    load_career_mcp_tools,
 )
 
 
-AGENT_TOOLS = [
-    web_search,
-    search_resume,
-]
+async def load_agent_tools():
+    mcp_tools = await load_career_mcp_tools()
+
+    return [
+        *mcp_tools, #Python 的解包
+        search_resume,
+    ]

@@ -17,16 +17,17 @@ def _configure_utf8_stdio() -> None:
 
 
 def main() -> None:
-    _configure_utf8_stdio()
-
-    thread_id = "career-test-001"
-
     response = run_career_agent(
-        "帮我搜索上海目前的 Agent 开发实习岗位，"
-        "并结合我的简历分析我的匹配情况。",
-        thread_id=thread_id,
+        prompt=(
+            "帮我搜索上海目前的 Agent 开发实习岗位，"
+            "并结合我的简历分析我的匹配情况。"
+        ),
+        thread_id="career-test-001",
     )
+
     print(response)
+
+
 
 
 if __name__ == "__main__":

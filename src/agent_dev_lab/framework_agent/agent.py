@@ -1,53 +1,91 @@
-from langchain.agents import create_agent
-from langgraph.checkpoint.memory import InMemorySaver
+import asyncio
 
-from agent_dev_lab.framework_agent.model import create_model
-from agent_dev_lab.framework_agent.tools import AGENT_TOOLS
+from langchain.agents import create_agent
+from langgraph.checkpoint.memory import (
+    InMemorySaver,
+)
+
+from agent_dev_lab.framework_agent.model import (
+    create_model,
+)
+from agent_dev_lab.framework_agent.tools import (
+    load_agent_tools,
+)
+
 
 SYSTEM_PROMPT = """
 You are a career research assistant.
 
 You can use:
-1. Web search for current jobs, companies, and external information.
-2. Resume search for the user's skills, education, projects, and experience.
 
-If the user's question can be answered directly from the conversation
-history, do not call tools unnecessarily.
+1. search_jobs:
+   Search for current job opportunities
+   by city and keyword.
 
-Use tools only when external or resume information is actually needed.
+2. search_resume:
+   Search the user's resume for skills,
+   education, projects, and experience.
 
-When the user asks for current job recommendations or job-fit analysis,
-use web search and resume search when appropriate.
+If the user's question can be answered
+directly from conversation history,
+do not call tools unnecessarily.
 
-Never invent job information or resume information.
-Base factual analysis on tool results when tools are required.
+Use search_jobs when current job
+information is needed.
+
+Use search_resume when resume information
+is needed.
+
+For job-fit analysis, use both tools
+when appropriate.
+
+Never invent job information or
+resume information.
 """
+
 
 checkpointer = InMemorySaver()
 
-carrer_agent = create_agent(
-    model=create_model(),
-    tools=AGENT_TOOLS,
-    system_prompt=SYSTEM_PROMPT,
-    checkpointer=checkpointer,
-)
-def run_career_agent(prompt: str, thread_id: str) -> str:
-    result = carrer_agent.invoke(
+
+async def arun_career_agent(
+    prompt: str,
+    thread_id: str,
+) -> str:
+    tools = await load_agent_tools()
+
+    agent = create_agent(
+        model=create_model(),
+        tools=tools,
+        system_prompt=SYSTEM_PROMPT,
+        checkpointer=checkpointer,
+    )
+
+    result = await agent.ainvoke(
         {
             "messages": [
                 {
-                    "role":"user",
-                    "content":prompt,
+                    "role": "user",
+                    "content": prompt,
                 }
             ]
         },
         config={
-            "configurable":{
+            "configurable": {
                 "thread_id": thread_id,
             }
         },
     )
 
-    #result["messages"]:拿到消息列表,如：messages=[user,assistant,tool,assitant]
-    #把 Agent 最后生成的回答返回给调用者
     return result["messages"][-1].content
+
+
+def run_career_agent(
+    prompt: str,
+    thread_id: str,
+) -> str:
+    return asyncio.run(
+        arun_career_agent(
+            prompt=prompt,
+            thread_id=thread_id,
+        )
+    )
