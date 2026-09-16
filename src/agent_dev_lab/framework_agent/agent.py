@@ -76,6 +76,8 @@ async def arun_career_agent(
         },
     )
 
+    timeout = 30
+
     return result["messages"][-1].content
 
 

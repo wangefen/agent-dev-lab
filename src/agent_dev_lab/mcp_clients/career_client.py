@@ -14,6 +14,10 @@ def create_career_mcp_client() -> MultiServerMCPClient:
                     "-m",
                     "agent_dev_lab.mcp_servers.career_server",
                 ],
+                "env":{
+                    "LANGSMITH_TRACING": "false",
+                    "LANGCHAIN_TRACING_V2": "false",
+                },
             }
         }
     )
