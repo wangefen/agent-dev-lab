@@ -1,9 +1,6 @@
 import asyncio
 
 from langchain.agents import create_agent
-from langgraph.checkpoint.memory import (
-    InMemorySaver,
-)
 
 from agent_dev_lab.framework_agent.model import (
     create_model,
@@ -11,6 +8,10 @@ from agent_dev_lab.framework_agent.model import (
 from agent_dev_lab.framework_agent.tools import (
     load_agent_tools,
 )
+
+from langgraph.checkpoint.postgres.aio import (AsyncPostgresSaver)
+
+from agent_dev_lab.config import DATABASE_URL
 
 
 SYSTEM_PROMPT = """
@@ -44,37 +45,41 @@ resume information.
 """
 
 
-checkpointer = InMemorySaver()
 
 
 async def arun_career_agent(
     prompt: str,
     thread_id: str,
 ) -> str:
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL is not configured.")
+
     tools = await load_agent_tools()
 
-    agent = create_agent(
-        model=create_model(),
-        tools=tools,
-        system_prompt=SYSTEM_PROMPT,
-        checkpointer=checkpointer,
-    )
+    async with AsyncPostgresSaver.from_conn_string(DATABASE_URL) as checkpointer:
 
-    result = await agent.ainvoke(
-        {
-            "messages": [
-                {
-                    "role": "user",
-                    "content": prompt,
+        agent = create_agent(
+            model=create_model(),
+            tools=tools,
+            system_prompt=SYSTEM_PROMPT,
+            checkpointer=checkpointer,
+        )
+
+        result = await agent.ainvoke(
+            {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    }
+                ]
+            },
+            config={
+                "configurable": {
+                    "thread_id": thread_id,
                 }
-            ]
-        },
-        config={
-            "configurable": {
-                "thread_id": thread_id,
-            }
-        },
-    )
+            },
+        )
 
     timeout = 30
 
