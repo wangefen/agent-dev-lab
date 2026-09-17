@@ -1,7 +1,6 @@
 import os #Python 自带的 os 模块可以读取操作系统环境变量。
 
 from dotenv import load_dotenv
-from langchain_community.document_loaders.notiondb import DATABASE_URL
 
 load_dotenv()
 
