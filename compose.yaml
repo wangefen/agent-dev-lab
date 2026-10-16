@@ -1,0 +1,71 @@
+# 定义本项目需要运行的所有服务（每个服务通常对应一个容器）。
+services:
+  # PostgreSQL 数据库服务。
+  # 服务名 postgres 同时也是 Docker 内部网络中的主机名。
+  postgres:
+    # 使用 PostgreSQL 18 官方镜像。
+    image: postgres:18
+
+    # PostgreSQL 官方镜像首次初始化数据库时读取的环境变量。
+    environment:
+      # 初始化时创建的数据库用户名。
+      POSTGRES_USER: agent_user
+      # agent_user 用户的登录密码；agent_password 是实际密码字符串。
+      POSTGRES_PASSWORD: agent_password
+      # 初始化时创建的默认数据库名称。
+      POSTGRES_DB: agent_dev_lab
+
+    # 将数据库文件保存到 Docker 数据卷，重建容器后数据仍可保留。
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    # 定期检查 PostgreSQL 是否已经可以接受连接。
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          # 使用 agent_user 检查 agent_dev_lab 数据库是否就绪。
+          "pg_isready -U agent_user -d agent_dev_lab"
+        ]
+      # 每隔 5 秒执行一次健康检查。
+      interval: 5s
+      # 单次检查超过 5 秒即视为失败。
+      timeout: 5s
+      # 连续失败 10 次后将容器标记为不健康。
+      retries: 10
+
+  # Career Agent 的 FastAPI 后端服务。
+  agent:
+    # 使用当前目录中的 Dockerfile 构建镜像。
+    build: .
+    # 构建出的镜像名称及版本标签。
+    image: career-agent:0.1
+
+    # 将 .env 文件中的 API Key、模型配置等变量注入 agent 容器。
+    env_file:
+      - .env
+
+    # 为 agent 容器额外设置或覆盖环境变量。
+    environment:
+      # PostgreSQL 连接地址，格式为：协议://用户名:密码@主机名:端口/数据库名。
+      # postgres 是上方数据库服务的名称，也是容器网络内可解析的主机名。
+      DATABASE_URL: postgresql://agent_user:agent_password@postgres:5432/agent_dev_lab
+
+    # 将宿主机的 8000 端口映射到容器的 8000 端口。
+    # 因此可以通过 http://127.0.0.1:8000 访问后端。
+    ports:
+      - "8000:8000"
+
+    # 将项目中的 data 目录挂载到容器的 /app/data 目录。
+    volumes:
+      - ./data:/app/data
+
+    # 等 PostgreSQL 健康检查通过后再启动 agent 服务。
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+# 声明由 Docker 管理的持久化数据卷。
+volumes:
+  # 保存 PostgreSQL 数据库文件。
+  postgres_data:

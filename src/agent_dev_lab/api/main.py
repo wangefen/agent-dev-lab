@@ -78,11 +78,14 @@ async def lifespan(app: FastAPI):
     # 等待 min_size 个数据库连接真正建立完成。
     await pool.wait()
 
-    # AsyncPostgresSaver 不再自己创建数据库连接，
-    # 而是直接复用整个 FastAPI 服务共享的连接池。
-    app.state.checkpointer = AsyncPostgresSaver(
-        pool
-    )
+    # 使用 FastAPI 生命周期内共享的 PostgreSQL 连接池。
+    checkpointer = AsyncPostgresSaver(pool)
+
+    # 确保 LangGraph Checkpointer 所需的数据表存在。
+    # 对全新的 PostgreSQL 数据库尤其重要。
+    await checkpointer.setup()
+
+    app.state.checkpointer = checkpointer
 
     logger.info(
         "PostgreSQL connection pool started."
@@ -117,10 +120,7 @@ class ChatResponse(BaseModel):
     answer: str
 
 
-@app.post(
-    "/chat",
-    response_model=ChatResponse,
-)
+@app.post("/chat", response_model=ChatResponse)
 async def chat(payload: ChatRequest, request: Request,) -> ChatResponse:
     # 从 FastAPI 应用状态中拿到启动时创建好的
     # PostgreSQL Checkpointer。

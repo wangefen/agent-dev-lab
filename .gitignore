@@ -222,5 +222,8 @@ data/chroma/
 data/documents/*
 !data/documents/.gitkeep
 
+# Local document rendering artifacts
+.tmp_docx/
+
 
 **/test_*.py
