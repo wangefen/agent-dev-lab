@@ -9,6 +9,13 @@ from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
 from pydantic import BaseModel
 
+from agent_dev_lab.auth.repository import (
+    create_auth_tables,
+)
+from agent_dev_lab.auth.router import (
+    router as auth_router,
+)
+
 from agent_dev_lab.config import DATABASE_URL
 from agent_dev_lab.framework_agent.agent import (
     arun_career_agent,
@@ -81,10 +88,15 @@ async def lifespan(app: FastAPI):
     # 使用 FastAPI 生命周期内共享的 PostgreSQL 连接池。
     checkpointer = AsyncPostgresSaver(pool)
 
-    # 确保 LangGraph Checkpointer 所需的数据表存在。
-    # 对全新的 PostgreSQL 数据库尤其重要。
     await checkpointer.setup()
 
+    # 创建认证模块需要的 app_users 用户表。
+    await create_auth_tables(pool)
+
+    # 保存数据库连接池，供认证依赖查询用户。
+    app.state.db_pool = pool
+
+    # 保存 LangGraph 的对话状态管理器。
     app.state.checkpointer = checkpointer
 
     logger.info(
@@ -103,13 +115,20 @@ async def lifespan(app: FastAPI):
             "PostgreSQL connection pool closed."
         )
 
-
+#FastAPI 应用对象调用外部注册的 lifespan 函数，并把自己作为参数传进去。
 app = FastAPI(
     title="Career Agent API",
     version="1.0",
     lifespan=lifespan,
 )
 
+
+# 把 auth/router.py 中定义的接口注册到 FastAPI：
+#
+# POST /auth/register
+# POST /auth/login
+# GET  /auth/me
+app.include_router(auth_router)
 
 class ChatRequest(BaseModel):
     message: str

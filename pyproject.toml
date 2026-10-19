@@ -23,4 +23,9 @@ dependencies = [
     "uvicorn",
     "langgraph-checkpoint-postgres",
     "psycopg[binary,pool]",
+    "pyjwt",
+    "pwdlib[argon2]",
+    "python-multipart",
+    "email-validator",
+    "docx2txt",
 ]
