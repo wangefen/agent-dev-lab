@@ -9,6 +9,8 @@ from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
 from pydantic import BaseModel
 
+
+from agent_dev_lab.auth.dependencies import CurrentUser
 from agent_dev_lab.auth.repository import (
     create_auth_tables,
 )
@@ -140,7 +142,7 @@ class ChatResponse(BaseModel):
 
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(payload: ChatRequest, request: Request,) -> ChatResponse:
+async def chat(payload: ChatRequest, request: Request, current_user: CurrentUser,) -> ChatResponse:
     # 从 FastAPI 应用状态中拿到启动时创建好的
     # PostgreSQL Checkpointer。
     #request 是 FastAPI 自动注入的当前 HTTP 请求对象；
@@ -149,11 +151,20 @@ async def chat(payload: ChatRequest, request: Request,) -> ChatResponse:
         request.app.state.checkpointer
     )
 
+    # 前端生成的 thread_id 只代表对话编号。
+    # 在它前面加入当前用户 UUID 后，
+    # 不同用户即使使用相同的 thread_id，
+    # 最终也会对应不同的 LangGraph 对话状态。
+    user_thread_id = (
+        f"user:{current_user.id}:"
+        f"thread:{payload.thread_id}"
+    )
+
     # Agent 不再负责创建 PostgreSQL 连接，
     # 直接使用 FastAPI 提供的共享 Checkpointer。
     answer = await arun_career_agent(
         prompt=payload.message,
-        thread_id=payload.thread_id,
+        thread_id=user_thread_id,
         checkpointer=checkpointer,
     )
 
