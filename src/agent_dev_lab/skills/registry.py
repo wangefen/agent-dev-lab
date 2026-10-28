@@ -64,8 +64,9 @@ class SkillRegistry:
 
     def __init__(
         self,
-        skills_dir: str | Path = DEFAULT_SKILLS_DIR,
+        skills_dir: str | Path = DEFAULT_SKILLS_DIR,    #str | Path：表示可以传字符串，也可以传 Path 对象
     ) -> None:
+        # self.相当于public，self.相当于.private
         # 允许调用者传入字符串或Path，内部统一转换成绝对路径。
         # 测试时可以传入临时目录，不必依赖真实项目目录。
         self.skills_dir = Path(skills_dir).resolve()
@@ -157,7 +158,7 @@ class SkillRegistry:
     def list_metadata(self) -> tuple[SkillMetadata, ...]:
         """返回所有已注册Skill的简要元数据。"""
 
-        self._ensure_discovered()
+        self._ensure_discovered()   #如果还没扫描过，就调用 self.discover()
 
         # 按Skill名称排序，使系统提示词和测试结果保持稳定。
         return tuple(

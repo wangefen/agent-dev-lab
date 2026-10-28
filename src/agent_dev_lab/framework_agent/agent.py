@@ -2,6 +2,10 @@ import asyncio
 
 from langchain.agents import create_agent
 
+from agent_dev_lab.skills.tools import (
+    skill_registry,
+)
+
 from agent_dev_lab.framework_agent.model import (
     create_model,
 )
@@ -54,12 +58,29 @@ async def arun_career_agent(
 ) -> str:
     tools = await load_agent_tools()
 
+    # 获取可用Skill的名称和简介。
+    # 第一次调用时，注册表会扫描项目的skills目录。
+    skill_catalog = skill_registry.render_catalog()
+
+    # 在原有系统提示词后面加入Skill目录和使用规则。
+    # 完整的Skill内容由Agent需要时调用load_skill获取。
+    system_prompt = (
+        f"{SYSTEM_PROMPT}\n\n"
+        "Available Skills:\n"
+        f"{skill_catalog}\n\n"
+        "If the user's request matches an available Skill, "
+        "call load_skill with the exact Skill name before "
+        "performing the task. Follow the loaded instructions."
+    )
+
     agent = create_agent(
         model=create_model(),
         tools=tools,
-        system_prompt=SYSTEM_PROMPT,
+        system_prompt=system_prompt,
         checkpointer=checkpointer,
     )
+
+
 
     result = await agent.ainvoke(
         {
@@ -76,6 +97,22 @@ async def arun_career_agent(
             }
         },
     )
+
+    # 临时观察Agent调用了哪些工具。
+    # result["messages"]可能包含当前thread的历史消息，
+    # 所以这里也可能打印之前对话中的工具调用。
+    for message in result["messages"]:
+        tool_calls = getattr(
+            message,
+            "tool_calls",
+            [],
+        )
+
+        for tool_call in tool_calls:
+            print(
+                "Agent调用工具：",
+                tool_call["name"],
+            )
 
     return result["messages"][-1].content
 

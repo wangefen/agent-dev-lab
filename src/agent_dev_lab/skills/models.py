@@ -37,11 +37,11 @@ class SkillMetadata(BaseModel):
     )
 
     name: str = Field(
-        ...,
-        description="Skill的唯一名称。",
+        ...,        #表示这个字段是必填的，没有默认值
+        description="Skill的唯一名称。",  #给这个字段增加一段说明信息
         pattern=(
             r"^[a-z0-9]+"
-            r"(?:-[a-z0-9]+)*$"
+            r"(?:-[a-z0-9]+)*$"     #约束输入的字段格式
         ),
     )
 
