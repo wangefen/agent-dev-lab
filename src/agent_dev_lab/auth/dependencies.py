@@ -38,6 +38,7 @@ bearer_scheme = HTTPBearer(
 )
 
 
+#前端发来的是 HTTP 请求，FastAPI 基于收到的请求提供一个 Request 对象
 def get_database_pool(
     request: Request,
 ) -> AsyncConnectionPool:

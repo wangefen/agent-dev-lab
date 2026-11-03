@@ -18,7 +18,12 @@ from agent_dev_lab.auth.router import (
     router as auth_router,
 )
 
+from agent_dev_lab.conversation.router import (
+    router as conversation_router,
+)
+
 from agent_dev_lab.config import DATABASE_URL
+from agent_dev_lab.conversation.repository import create_conversation_table
 from agent_dev_lab.framework_agent.agent import (
     arun_career_agent,
 )
@@ -95,6 +100,10 @@ async def lifespan(app: FastAPI):
     # 创建认证模块需要的 app_users 用户表。
     await create_auth_tables(pool)
 
+    # 创建会话目录表。
+    # conversations.user_id依赖app_users表，所以必须先创建用户表
+    await create_conversation_table(pool)
+
     # 保存数据库连接池，供认证依赖查询用户。
     app.state.db_pool = pool
 
@@ -131,6 +140,8 @@ app = FastAPI(
 # POST /auth/login
 # GET  /auth/me
 app.include_router(auth_router)
+
+app.include_router(conversation_router)
 
 class ChatRequest(BaseModel):
     message: str
