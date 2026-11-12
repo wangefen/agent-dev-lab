@@ -1,4 +1,5 @@
 import asyncio
+from uuid import UUID
 
 from langchain.agents import create_agent
 
@@ -16,6 +17,8 @@ from agent_dev_lab.framework_agent.tools import (
 from langgraph.checkpoint.postgres.aio import (AsyncPostgresSaver)
 
 from agent_dev_lab.config import DATABASE_URL
+
+from psycopg_pool import AsyncConnectionPool
 
 
 SYSTEM_PROMPT = """
@@ -54,9 +57,11 @@ resume information.
 async def arun_career_agent(
     prompt: str,
     thread_id: str,
-    checkpointer: AsyncPostgresSaver
+    checkpointer: AsyncPostgresSaver,
+    pool: AsyncConnectionPool | None=None,
+    user_id: UUID | None=None
 ) -> str:
-    tools = await load_agent_tools()
+    tools = await load_agent_tools(pool, user_id)
 
     # 获取可用Skill的名称和简介。
     # 第一次调用时，注册表会扫描项目的skills目录。

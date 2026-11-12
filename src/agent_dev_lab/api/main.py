@@ -22,6 +22,10 @@ from agent_dev_lab.conversation.router import (
     router as conversation_router,
 )
 
+from agent_dev_lab.resume.router import (
+    router as resume_router,
+)
+
 from agent_dev_lab.config import DATABASE_URL
 from agent_dev_lab.conversation.repository import create_conversation_table
 from agent_dev_lab.framework_agent.agent import (
@@ -143,6 +147,8 @@ app.include_router(auth_router)
 
 app.include_router(conversation_router)
 
+app.include_router(resume_router)
+
 class ChatRequest(BaseModel):
     message: str
     thread_id: str = "default"
@@ -177,6 +183,8 @@ async def chat(payload: ChatRequest, request: Request, current_user: CurrentUser
         prompt=payload.message,
         thread_id=user_thread_id,
         checkpointer=checkpointer,
+        pool=pool,
+        user_id=current_user.id
     )
 
     return ChatResponse(

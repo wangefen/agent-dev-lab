@@ -1,44 +1,43 @@
-from threading import Lock
+from uuid import UUID
 
 from langchain_core.tools import tool
+from psycopg_pool import AsyncConnectionPool
 
-from agent_dev_lab.rag.retriever import create_retriever
-from agent_dev_lab.rag.vector_store import load_vector_store
-
-# langgraph 会用线程池并发执行多个工具调用，而 chromadb 的
-# PersistentClient 并发创建是线程不安全的（会随机抛
-# AttributeError/KeyError/ValueError）。所以在进程内只建一次
-# retriever 并缓存复用，首次初始化用锁保护。
-_lock = Lock()
-_cached_retriever = None
+from agent_dev_lab.rag.embeddings import create_embeddings
+from agent_dev_lab.resume.repository import find_resume_chunks
 
 
-def _get_retriever():
-    global _cached_retriever
+def create_resume_tool(
+    pool: AsyncConnectionPool | None,
+    user_id: UUID | None,
+):
+    """为当前用户创建一个简历检索工具。"""
 
-    if _cached_retriever is None:
-        with _lock:
-            if _cached_retriever is None:  #双重加锁
-                vector_store = load_vector_store()
-                _cached_retriever = create_retriever(vector_store)
+    @tool
+    async def search_resume(query: str) -> str:
+        """Search the current user's uploaded resume for relevant experience."""
 
-    return _cached_retriever
+        # 命令行模式没有登录用户，无法确定应该查询谁的简历。
+        if pool is None or user_id is None:
+            return "请登录后再使用简历检索。"
 
+        # 把用户的问题转换成向量，用来和简历片段的向量比较。
+        embedding_client = create_embeddings()
+        query_embedding = await embedding_client.aembed_query(query)
 
-@tool
-def search_resume(query: str) -> str:
-    """Search the user's resume for relevant experience, skills, education, and projects."""
+        # 查询这个用户最新上传的简历，取最相关的 5 个片段。
+        chunks = await find_resume_chunks(
+            pool=pool,
+            user_id=user_id,
+            query_embedding=query_embedding,
+            limit=5,
+        )
 
-    retriever = _get_retriever()
+        if not chunks:
+            return "没有检索到可用的简历内容。请确认已上传简历。"
 
-    documents = retriever.invoke(query)
+        # 将片段拼接成文本，中间用分隔线隔开。
+        result = "\n\n---\n\n".join(chunks)
+        return result
 
-    if not documents:
-        return "No relevant resume information found."
-
-    contents = [
-        document.page_content
-        for document in documents
-    ]
-
-    return "\n\n---\n\n".join(contents)
+    return search_resume
